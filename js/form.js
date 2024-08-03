@@ -1,0 +1,67 @@
+class Form {
+    constructor(node, inputs) {
+        this.node = node
+        this.btnSubmit = node.querySelector('.submitButton')
+        this.inputs = inputs
+        this.submitDisable = true
+
+        this.btnSubmit.addEventListener("click", (e)=> {
+            e.preventDefault()
+        })
+        this.inputs.forEach((input) => {
+            input.invalidInput = true
+            input.addEventListener('input', () => {
+                switch(input.getAttribute('type')) {
+                    case 'number':
+                        input.invalidInput = formNumberCheck(input)
+                        break
+                    case 'text':
+                        break;
+                }
+                this.formCheckSubmit()
+            })
+        })
+    }
+    formCheckSubmit() {
+        this.submitDisable = false
+        this.inputs.forEach((input) => {
+            if (input.invalidInput || input.value == "") {
+                this.submitDisable = true
+            }
+        })
+        if(this.submitDisable) {
+            this.btnSubmit.classList.add('disabledButton')
+        } 
+        else {
+            this.btnSubmit.classList.remove('disabledButton')
+        }
+    }
+}
+
+function formShowInputAlert(inputElement, alertMessage) {
+    let parentNode = inputElement.parentNode
+    let alertElement = document.createElement('h4')
+    alertElement.textContent = alertMessage
+    alertElement.classList.add('inputAlert')
+    parentNode.insertBefore(alertElement, parentNode.querySelector('input'))
+}
+
+function formNumberCheck(inputElement) {
+    let inputValue = parseInt(inputElement.value)
+    let alertElement = inputElement.parentNode.querySelector('.inputAlert')
+    // chequea si hay una alerta en pantalla
+    if (alertElement) {
+        // la borra
+        alertElement.remove()
+    }
+    if (Number.isNaN(inputValue)) {
+        formShowInputAlert(inputElement, 'Ingrese un numero')
+        return true
+    }
+    else if (inputValue <= 0) {
+        formShowInputAlert(inputElement, 'Ingrese un numero positivo')
+        return true
+    }
+    return false
+}
+
