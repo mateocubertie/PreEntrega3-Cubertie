@@ -16,7 +16,7 @@ html {
     --primary-bg-color: #111111;
     --secondary-bg-color: #252525;
     --header-bg-color: #0f0f0f;
-    --primary-brand-color: #1ea447;
+    --primary-brand-color: #0e9135;
     --button-outline-color: white;
     --main-text-color: white;
     --main-font-regular: 'Inter';
@@ -32,6 +32,9 @@ html {
     border-radius: 0.4rem;
     margin: 0 10px 0 10px;
     /*text-shadow: 3px 3px 3px rgba(103,103,103,0.6);*/
+    box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
+    -webkit-box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
+    -moz-box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
 }
 
 .solidFill {
@@ -202,35 +205,39 @@ nav img {
     flex-direction: column;
 }
 
-.genericForm > div {
+.genericForm {
     display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+#formPresupuesto {
     flex-direction: row;
     justify-content: space-between;
 }
-.genericForm > div > div {
+.genericForm > div {
     width: 50%;
 }
-.genericForm > div > .dataInputs {
+.genericForm .dataInputs {
     padding-right: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
-.genericForm > div > .dataDisplay {
+.genericForm > .dataDisplay {
     padding-left: 30px;
     display: flex;
     flex-direction: column;
     transition: 0.5s;
     transition-timing-function: ease-out;
 }
-.genericForm > div > .dataInputs > .formInput {
+.genericForm .dataInputs > .formInput {
     margin: 20px 0 20px 0;
     width: 100%;
 }
-.genericForm > div > .dataInputs > .formInput > h3 {
+.genericForm .dataInputs > .formInput > h3 {
     margin: 5px 0 5px 0;
 }
-.genericForm > div > .dataInputs > .button {
+.genericForm .dataInputs > .button {
     margin: 75px 0 20px 0;
     width: 100%;
 }
@@ -239,7 +246,18 @@ nav img {
     font-size: 14px;
 }
 .numberInput {
+    font-family: var(--main-font-regular);
     font-size: 16px;
+    border-style: none;
+    border-radius: 0.4rem;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 5px 0;
+    border-style: none;
+}
+select {
+    font-size: 16px;
+    font-family: var(--main-font-regular);
     border-style: none;
     border-radius: 0.4rem;
     width: 100%;
@@ -255,6 +273,9 @@ nav img {
 
 .disabledButton {
     background-color: rgb(70, 70, 70);
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
 }
 .disabledButton:hover {
     cursor: default;
@@ -285,7 +306,7 @@ nav img {
     width: 100%;
     height: auto;
     display: grid;
-    grid-template-columns:  4fr 2fr 2fr;
+    grid-template-columns: 4fr 2fr 2fr;
     grid-auto-rows: auto;
 }
 .displayGridTitle {
@@ -312,14 +333,49 @@ nav img {
     text-decoration: none;
 }
 
-.formGrid {
-    grid-template-columns: repeat(2, 1fr);
-}
-.gridFormTemplate .genericForm {
-    align-items: flex-start;
-}
-.gridFormTemplate .formGrid {
+.genericForm > .formGrid {
+    width: 100%;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: auto;
+}
+.formGrid .dataInputs {
+    padding-right: 30px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+.formGrid .dataInputs > h3 {
+    margin: 10px 0 4px 0;
+    color: var(--primary-brand-color);
+    font-weight: 600;
+    text-decoration: underline;
+}
+.displayCampo {
+    margin-top: 30px;
+    display: grid;
+    align-self: center;
+    gap: 10px;
+}
+.celdaHectarea {
+    width: 30px;
+    height: 30px;
+}
+.gridBotones {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: auto;
+    margin-top: 40px;
+}
+.gridBotones > button {
+    margin: 10px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
+    -webkit-box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
+    -moz-box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
+}
+#formSimulador1 > div > button {
+    margin-top: 20px;
+    
 }

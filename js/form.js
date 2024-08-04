@@ -8,19 +8,25 @@ class Form {
         this.btnSubmit.addEventListener("click", (e)=> {
             e.preventDefault()
         })
-        this.inputs.forEach((input) => {
+        for (let input of this.inputs) {
             input.invalidInput = true
             input.addEventListener('input', () => {
-                switch(input.getAttribute('type')) {
+                if (input.tagName == 'INPUT'){
+                    switch(input.getAttribute('type')) {
                     case 'number':
                         input.invalidInput = formNumberCheck(input)
                         break
                     case 'text':
+                        input.invalidInput = input.value == ""
                         break;
+                }
+                }
+                else if (input.tagName == 'SELECT') {
+                    input.invalidInput = (input.value == 'default')
                 }
                 this.formCheckSubmit()
             })
-        })
+        }
     }
     formCheckSubmit() {
         this.submitDisable = false
