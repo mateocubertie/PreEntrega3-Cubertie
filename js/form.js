@@ -9,7 +9,12 @@ class Form {
             e.preventDefault()
         })
         for (let input of this.inputs) {
-            input.invalidInput = true
+            if (input.value != 'undefined') {
+                input.invalidInput = true
+            }
+            else {
+                input.invalidInput = false
+            }
             input.addEventListener('input', () => {
                 if (input.tagName == 'INPUT'){
                     switch(input.getAttribute('type')) {
@@ -27,14 +32,15 @@ class Form {
                 this.formCheckSubmit()
             })
         }
+        this.formCheckSubmit()
     }
     formCheckSubmit() {
         this.submitDisable = false
-        this.inputs.forEach((input) => {
+        for (let input of this.inputs) {
             if (input.invalidInput || input.value == "") {
                 this.submitDisable = true
             }
-        })
+        }
         if(this.submitDisable) {
             this.btnSubmit.classList.add('disabledButton')
         } 

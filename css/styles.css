@@ -237,8 +237,11 @@ nav img {
 .genericForm .dataInputs > .formInput > h3 {
     margin: 5px 0 5px 0;
 }
-.genericForm .dataInputs > .button {
+.genericForm .dataInputs > .submitButton {
     margin: 75px 0 20px 0;
+    width: 100%;
+}
+.genericForm .dataInputs > .button {
     width: 100%;
 }
 .dataDisplay > h4 {
@@ -339,6 +342,9 @@ select {
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: auto;
 }
+.genericForm .button {
+    margin: 10px 0;
+}
 .formGrid .dataInputs {
     padding-right: 30px;
     margin-bottom: 20px;
@@ -378,4 +384,36 @@ select {
 #formSimulador1 > div > button {
     margin-top: 20px;
     
+}
+#formConsultar {
+    flex-direction: row;
+}
+table {
+    margin-top: 30px;
+    text-align: left;
+    font-size: 18px;
+}
+table th {
+    padding-left: 20px;
+    height: 55px;
+}
+table th .propiedad {
+    font-weight: 500;
+}
+table th .valorPropiedad{
+    font-weight: 300;
+}
+table, th, tr {
+    border: 2px, solid;
+    border-collapse: collapse;
+    border-color: var(--main-text-color);
+}
+.center {
+    align-self: center;
+}
+.centerText {
+    text-align: center;
+}
+.backButton {
+    margin-top: 30px;
 }
