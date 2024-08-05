@@ -301,9 +301,6 @@ function drawGridCampo(campo) {
 
 function menuForm1() {
     let inputAncho = document.querySelector('#simAnchoCampo')
-    if (inputAncho > 35) {
-        inputAncho = 35
-    }
     let inputCantCultivos = document.querySelector('#simCultivos')
     let inputTemperatura = document.querySelector('#tempInicial')
     let formInputs = [inputAncho, inputCantCultivos, inputTemperatura]
@@ -314,6 +311,9 @@ function menuForm1() {
         e.preventDefault()
         if (!form1.submitDisable) {
             anchoCampo = parseInt(inputAncho.value)
+            if (anchoCampo > 30) {
+                anchoCampo = 30
+            }
             cantidadCultivos = parseInt(inputCantCultivos.value)
             tempInicial = inputTemperatura.value
             limpiarPantalla()
