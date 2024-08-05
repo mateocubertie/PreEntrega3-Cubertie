@@ -1,13 +1,36 @@
-let headerHeight = parseInt(document.querySelector('header').offsetHeight)
-document.getElementById('simulador').style.marginTop = `${headerHeight + 30}px`
 
-class Campo {
-    constructor(array, ancho, filas) {
-        this.array = array
-        this.ancho = ancho
-        this.filas = filas
-    }
+
+//! Funciones de operaciones generales
+
+// Pone una mayuscula al principio del string
+function meterMayuscula(string) {
+    return string[0].toUpperCase().concat(string.slice([1]));
 }
+
+// Formatea el string (mayuscula al principio y luego minusculas)
+function formatearString(string) {
+    return meterMayuscula(string.toLocaleLowerCase());
+}
+
+// Genera un numero aleatorio de 2 cifras decimales
+function randomNumber(min, max) {
+    let difference = max - min;
+    return Math.floor((min + Math.random() * difference) * 10) / 10;
+}
+
+// Toma un numero y lo ajusta a sus limites establecidos si es necesario
+function fitToLimits(num, min, max) {
+    if (num < min) {
+        num = min;
+    }
+    else if (num > max) {
+        num = max;
+    }
+    return num;
+}
+
+//! Funciones de operaciones con objetos (pendiente: pasarlas a metodos)
+
 function filtrarCampo(campo, celdaFiltro) {
     let campoFiltrado = []
     campo.array.forEach((fila) => {
@@ -18,18 +41,6 @@ function filtrarCampo(campo, celdaFiltro) {
     })
     return campoFiltrado;
 }
-//! Objetos y metodos
-class HectareaCultivo {
-    // Constructor
-    constructor(id, cultivo, humedad, temperatura, progreso) {
-        this.id = id;
-        this.cultivo = cultivo;
-        this.humedad = humedad;
-        this.temperatura = temperatura;
-        this.progreso = progreso;
-        this.color = coloresCultivos(cultivo)
-    }
-}
 
 // Chequea que las propiedades numericas de la celda se encuentren dentro de los limites
 function chequearLimitesCelda(celda) {
@@ -38,26 +49,69 @@ function chequearLimitesCelda(celda) {
     celda.progreso = fitToLimits(celda.progreso, 0, 100);
 }
 
-let campo = new Campo()
-let simulador = document.querySelector('#simulador')
+function generarPromedio(campoFiltrado, propiedad) {
+    let sumaTotal = campoFiltrado.reduce((accumulator, celda) => accumulator + celda[`${propiedad}`], 0)
+    let digitosDecimales = 2
+    const redondeoDecimal = Math.pow(10, digitosDecimales)
+    let promedio = Math.round((sumaTotal / campoFiltrado.length) * redondeoDecimal) / redondeoDecimal
+    return promedio
+}
 
-let inputAncho = document.querySelector('#simAnchoCampo')
-let inputCantCultivos = document.querySelector('#simCultivos')
-let inputTemperatura = document.querySelector('#tempInicial')
-let formInputs = [inputAncho, inputCantCultivos, inputTemperatura]
-
-let form1 = new Form(document.querySelector('#formSimulador1'), formInputs)
-
-form1.btnSubmit.addEventListener("click", (e) => {
-    e.preventDefault()
-    if (!form1.submitDisable) {
-        anchoCampo = parseInt(inputAncho.value)
-        cantidadCultivos = parseInt(inputCantCultivos.value)
-        tempInicial = inputTemperatura.value
-        limpiarPantalla()
-        form2(cantidadCultivos)
+function compararCelda(celda, celdaFiltro) {
+    for (let propiedad in celdaFiltro) {
+        let valorFiltro = celdaFiltro[`${propiedad}`];
+        if (valorFiltro !== 'undefined' && valorFiltro !== 'Undefined') {
+            let valorPropiedad = celda[`${propiedad}`];
+            if (propiedad == 'cultivo') {
+                if (valorPropiedad !== valorFiltro) {
+                    return false;
+                }
+            }
+            else {
+                let min = valorFiltro[0];
+                let max = valorFiltro[1];
+                if (valorPropiedad < min || valorPropiedad >= max) {
+                    return false;
+                }
+            }
+        }
     }
-})
+    return true;
+}
+function consultarCelda(campo, fila, columna) {
+    let arrayFila = campo.array[fila]
+    if (arrayFila) {
+        let celda = (campo.array[fila])[columna]
+        return celda ?? null
+    }
+    else {
+        return null
+    }
+}
+
+// Genera las celdas del array del campo (guardado como var. global)
+function inicializarCampo(form2) {
+    let listaParcelas = form2.node.getElementsByClassName('dataInputs')
+    for (let parcela of listaParcelas) {
+        let cultivo = formatearString(parcela.querySelector('.nombreCultivo').value)
+        let progresoInicial = parcela.querySelector('.progresoInicial').value
+        let humedadInicial = parcela.querySelector('.humedadInicial').value
+        let largo = parseInt(parcela.querySelector('.largoParcela').value)
+        for (let nFila = 0; nFila < largo; nFila++) {
+            let fila = [];
+            // For que recorre cada celda de la fila
+            for (let nColumna = 0; nColumna < anchoCampo; nColumna++) {
+                // Genera un id de la forma '(fila;columna)'
+                let id = `${nFila};${nColumna}`;
+                let celda = new HectareaCultivo(id, cultivo, setHumedadInicial(humedadInicial), setTemperaturaInicial(tempInicial), setProgresoInicial(progresoInicial));
+                fila.push(celda);
+            }
+            arrayCampo.push(fila);
+        }
+    }
+}
+
+//! Funciones flecha para actualizar las celdas del simulador
 
 let actualizarCeldaLluvia = (celda) => {
     celda.humedad += randomNumber(3, 10);
@@ -80,46 +134,7 @@ let actualizarCeldaNublado = (celda) => {
     chequearLimitesCelda(celda);
 }
 
-let buttonCargarProgreso = document.querySelector('.buttonCargarProgreso')
-buttonCargarProgreso.onclick = () => {
-    saveCheck()
-}
-
-let arrayCampo = []
-
-let cantidadCultivos
-let anchoCampo
-let tempInicial
-
-checkLastScreen()
-
-
-function saveCheck() {
-    let localSave = JSON.parse(localStorage.getItem("campoSave"))
-    if (localSave) {
-        campo = localSave
-        limpiarPantalla()
-        menuSimulador()
-    }
-}
-
-function checkLastScreen() {
-    let lastScreen = sessionStorage.getItem("lastScreen") ?? 'primerForm'
-    switch (lastScreen) {
-        case 'primerForm':
-            break
-        case 'menuConsultar':
-            campo = JSON.parse(localStorage.getItem("campoSave"))
-            limpiarPantalla()
-            menuConsultar()
-            break
-        case 'menuSimulador':
-            campo = JSON.parse(localStorage.getItem("campoSave"))
-            limpiarPantalla()
-            menuSimulador()
-            break
-    }
-}
+//! Funciones para traducir inputs en valores de propiedades
 
 function setTemperaturaInicial(opcion) {
     switch (opcion) {
@@ -131,6 +146,7 @@ function setTemperaturaInicial(opcion) {
             return randomNumber(20, 25);
     }
 }
+
 function setHumedadInicial(opcion) {
     switch (opcion) {
         case '1':
@@ -143,6 +159,7 @@ function setHumedadInicial(opcion) {
             return randomNumber(60, 80);
     }
 }
+
 function setProgresoInicial(opcion) {
     switch (opcion) {
         case '1':
@@ -157,6 +174,7 @@ function setProgresoInicial(opcion) {
             return randomNumber(85, 95);
     }
 }
+
 function coloresCultivos(cultivo) {
     switch (cultivo) {
         case 'Papa':
@@ -178,11 +196,135 @@ function coloresCultivos(cultivo) {
     }
 }
 
+function getFiltroHumedad(opcion) {
+    switch (opcion) {
+        case '1':
+            return [0, 20];
+        case '2':
+            return [20, 40];
+        case '3':
+            return [40, 60];
+        case '4':
+            return [60, 100];
+    }
+    return opcion
+}
+
+function getFiltroTemperatura(opcion) {
+    switch (opcion) {
+        case '1':
+            return [0, 15];
+        case '2':
+            return [15, 20];
+        case '3':
+            return [20, 100];
+    }
+    return opcion
+}
+
+function getFiltroProgreso(opcion) {
+    switch (opcion) {
+        case '1':
+            return [0, 20];
+        case '2':
+            return [20, 40];
+        case '3':
+            return [40, 60];
+        case '4':
+            return [60, 80];
+        case '5':
+            return [80, 100];
+        case '6':
+            return [100, 101];
+    }
+    return opcion
+}
+
+//! Funciones que operan con objetos del DOM
+
+function getNodeFromTemplate(templateSelector) {
+    return document.querySelector(`${templateSelector}`).content.cloneNode(true).children.item(0)
+}
+
+//! Funciones que modifican el contenido mostrado
+
+function saveCheck() {
+    let localSave = JSON.parse(localStorage.getItem("campoSave"))
+    if (localSave) {
+        console.log(campo)
+        console.log('estadoprevio')
+        campo = localSave
+        limpiarPantalla()
+        menuSimulador()
+    }
+}
+
+function checkLastScreen() {
+    let lastScreen = sessionStorage.getItem("lastScreen") ?? 'primerForm'
+    switch (lastScreen) {
+        case 'primerForm':
+            menuForm1()
+            break
+        case 'simulador':
+            console.log(campo)
+            campo = JSON.parse(localStorage.getItem("campoSave"))
+            // Reconvierte el campo guardado en localStorage en un objeto de prototipo Campo
+            Object.setPrototypeOf(campo, new Campo())
+            console.log(campo)
+            limpiarPantalla()
+            menuSimulador()
+            break
+    }
+}
+
 function limpiarPantalla() {
     simulador.innerHTML = `<h2>Simulador de campo</h2>`
 }
 
-function form2(cantidadCultivos) {
+function drawGridCampo(campo) {
+    let gridCampo = document.createElement('div')
+    gridCampo.classList.add('displayCampo')
+    gridCampo.style.gridTemplateColumns = `repeat(${campo.ancho}, auto)`
+    gridCampo.style.gridTemplateRows = `repeat(${campo.filas}, auto)`
+    for (let nFila = 0; nFila < campo.filas; nFila++) {
+        for (let nColumna = 0; nColumna < campo.ancho; nColumna++) {
+            let celda = document.createElement('div')
+            celda.className = 'celdaHectarea'
+            celda.style.backgroundColor = `${campo.array[nFila][nColumna].color}`
+            gridCampo.appendChild(celda)
+        }
+    }
+    simulador.appendChild(gridCampo)
+}
+
+//! Menus
+
+function menuForm1() {
+    let inputAncho = document.querySelector('#simAnchoCampo')
+    let inputCantCultivos = document.querySelector('#simCultivos')
+    let inputTemperatura = document.querySelector('#tempInicial')
+    let formInputs = [inputAncho, inputCantCultivos, inputTemperatura]
+
+    form1 = new Form(document.querySelector('#formSimulador1'), formInputs)
+    console.log(form1)
+    form1.btnSubmit.addEventListener("click", (e) => {
+        e.preventDefault()
+        if (!form1.submitDisable) {
+            anchoCampo = parseInt(inputAncho.value)
+            cantidadCultivos = parseInt(inputCantCultivos.value)
+            tempInicial = inputTemperatura.value
+            limpiarPantalla()
+            form2()
+        }
+    })
+
+    let buttonCargarProgreso = document.querySelector('.buttonCargarProgreso')
+    buttonCargarProgreso.onclick = () => {
+        saveCheck()
+    }
+}
+
+function form2() {
     let templateClone = document.querySelector('#gridFormTemplate').content.cloneNode(true)
     let formElement = templateClone.querySelector('form')
     let contenedorGrid = templateClone.querySelector('.formGrid')
@@ -216,29 +358,8 @@ function form2(cantidadCultivos) {
     })
 }
 
-function inicializarCampo(form2) {
-    let listaParcelas = form2.node.getElementsByClassName('dataInputs')
-    for (let parcela of listaParcelas) {
-        let cultivo = formatearString(parcela.querySelector('.nombreCultivo').value)
-        let progresoInicial = parcela.querySelector('.progresoInicial').value
-        let humedadInicial = parcela.querySelector('.humedadInicial').value
-        let largo = parseInt(parcela.querySelector('.largoParcela').value)
-        for (let nFila = 0; nFila < largo; nFila++) {
-            let fila = [];
-            // For que recorre cada celda de la fila
-            for (let nColumna = 0; nColumna < anchoCampo; nColumna++) {
-                // Genera un id de la forma '(fila;columna)'
-                let id = `${nFila};${nColumna}`;
-                let celda = new HectareaCultivo(id, cultivo, setHumedadInicial(humedadInicial), setTemperaturaInicial(tempInicial), setProgresoInicial(progresoInicial));
-                fila.push(celda);
-            }
-            arrayCampo.push(fila);
-        }
-    }
-}
-
 function menuSimulador() {
-    sessionStorage.setItem("lastScreen", 'menuSimulador')
+    sessionStorage.setItem("lastScreen", 'simulador')
     drawGridCampo(campo)
     let gridBotones = document.querySelector('#botonesSimulador').content.cloneNode(true)
     simulador.appendChild(gridBotones)
@@ -275,11 +396,9 @@ function menuSimulador() {
             }
         })
     }
-
 }
 
 function menuConsultar() {
-    sessionStorage.setItem("lastScreen", 'menuConsultar')
     let menuClone = document.querySelector('#menuConsultar').content.cloneNode(true)
     let formNode = menuClone.querySelector('.genericForm')
     let inputs = []
@@ -328,7 +447,6 @@ function menuConsultar() {
 
 function menuFiltrar() {
     let campoFiltrado
-    sessionStorage.setItem("lastScreen", 'menuFiltrar')
     let menuClone = document.querySelector('#menuFiltrar').content.cloneNode(true)
     let formNode = menuClone.querySelector('.genericForm')
     let dataInputs = formNode.querySelector('.dataInputs')
@@ -401,22 +519,18 @@ function menuSimularDia() {
             let opcion = selectorClima.value
             switch (opcion) {
                 case '1':
-                    recorrerCampo(campo, actualizarCeldaSol);
+                    campo.recorrerCampo(actualizarCeldaSol);
                     break;
                 case '2':
-                    recorrerCampo(campo, actualizarCeldaNublado);
+                    campo.recorrerCampo(actualizarCeldaNublado);
                     break;
                 case '3':
-                    recorrerCampo(campo, actualizarCeldaLluvia);
+                    campo.recorrerCampo(actualizarCeldaLluvia);
                     break;
             }
         }
     })
     simulador.appendChild(formNode)
-}
-
-function getNodeFromTemplate(templateSelector) {
-    return document.querySelector(`${templateSelector}`).content.cloneNode(true).children.item(0)
 }
 
 function menuPromedio() {
@@ -509,139 +623,84 @@ function menuPromedio() {
     })
 }
 
-function generarPromedio(campoFiltrado, propiedad) {
-    let sumaTotal = campoFiltrado.reduce((accumulator, celda) => accumulator + celda[`${propiedad}`], 0)
-    let digitosDecimales = 2
-    const redondeoDecimal = Math.pow(10, digitosDecimales)
-    let promedio = Math.round((sumaTotal / campoFiltrado.length) * redondeoDecimal) / redondeoDecimal
-    return promedio
-}
-
-
-function recorrerCampo(campo, funcion) {
-    campo.array.forEach((fila) => {
-        fila.forEach((celda) => funcion(celda))
-    })
-}
-
-function drawGridCampo(campo) {
-    let gridCampo = document.createElement('div')
-    gridCampo.classList.add('displayCampo')
-    gridCampo.style.gridTemplateColumns = `repeat(${campo.ancho}, auto)`
-    gridCampo.style.gridTemplateRows = `repeat(${campo.filas}, auto)`
-    for (let nFila = 0; nFila < campo.filas; nFila++) {
-        for (let nColumna = 0; nColumna < campo.ancho; nColumna++) {
-            let celda = document.createElement('div')
-            celda.className = 'celdaHectarea'
-            celda.style.backgroundColor = `${campo.array[nFila][nColumna].color}`
-            gridCampo.appendChild(celda)
-        }
+//! Clases y sus metodos
+class Campo {
+    constructor(array, ancho, filas) {
+        this.array = array
+        this.ancho = ancho
+        this.filas = filas
     }
-    simulador.appendChild(gridCampo)
-}
-
-function getFiltroHumedad(opcion) {
-    switch (opcion) {
-        case '1':
-            return [0, 20];
-        case '2':
-            return [20, 40];
-        case '3':
-            return [40, 60];
-        case '4':
-            return [60, 100];
-    }
-    return opcion
-}
-
-function getFiltroTemperatura(opcion) {
-    switch (opcion) {
-        case '1':
-            return [0, 15];
-        case '2':
-            return [15, 20];
-        case '3':
-            return [20, 100];
-    }
-    return opcion
-}
-
-function getFiltroProgreso(opcion) {
-    switch (opcion) {
-        case '1':
-            return [0, 20];
-        case '2':
-            return [20, 40];
-        case '3':
-            return [40, 60];
-        case '4':
-            return [60, 80];
-        case '5':
-            return [80, 100];
-        case '6':
-            return [100, 101];
-    }
-    return opcion
-}
-
-
-
-function compararCelda(celda, celdaFiltro) {
-    for (let propiedad in celdaFiltro) {
-        let valorFiltro = celdaFiltro[`${propiedad}`];
-        if (valorFiltro !== 'undefined' && valorFiltro !== 'Undefined') {
-            let valorPropiedad = celda[`${propiedad}`];
-            if (propiedad == 'cultivo') {
-                if (valorPropiedad !== valorFiltro) {
-                    return false;
-                }
-            }
-            else {
-                let min = valorFiltro[0];
-                let max = valorFiltro[1];
-                if (valorPropiedad < min || valorPropiedad >= max) {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
-}
-
-function consultarCelda(campo, fila, columna) {
-    let arrayFila = campo.array[fila]
-    if (arrayFila) {
-        let celda = (campo.array[fila])[columna]
-        return celda ?? null
-    }
-    else {
-        return null
+    recorrerCampo(funcion) {
+        console.log('funciono')
+        this.array.forEach((fila) => {
+            fila.forEach((celda) => funcion(celda))
+        })
     }
 }
 
-// Pone una mayuscula al principio del string
-function meterMayuscula(string) {
-    return string[0].toUpperCase().concat(string.slice([1]));
-}
-
-// Formatea el string (mayuscula al principio y luego minusculas)
-function formatearString(string) {
-    return meterMayuscula(string.toLocaleLowerCase());
-}
-
-// Genera un numero aleatorio de 2 cifras decimales
-function randomNumber(min, max) {
-    let difference = max - min;
-    return Math.floor((min + Math.random() * difference) * 10) / 10;
-}
-
-// Toma un numero y lo ajusta a sus limites establecidos si es necesario
-function fitToLimits(num, min, max) {
-    if (num < min) {
-        num = min;
+class HectareaCultivo {
+    // Constructor
+    constructor(id, cultivo, humedad, temperatura, progreso) {
+        this.id = id;
+        this.cultivo = cultivo;
+        this.humedad = humedad;
+        this.temperatura = temperatura;
+        this.progreso = progreso;
+        this.color = coloresCultivos(cultivo)
     }
-    else if (num > max) {
-        num = max;
-    }
-    return num;
 }
+
+//!! PROGRAMA PRINCIPAL
+
+// Le da un margin-top al contenido igual a la altura del header (position: fixed, fuera del flujo del documento)
+let headerHeight = parseInt(document.querySelector('header').offsetHeight)
+document.body.style.marginTop = `${headerHeight + 30}px`
+
+let simulador = document.querySelector('#simulador')
+
+let arrayCampo = []
+let anchoCampo
+
+let cantidadCultivos
+let tempInicial
+
+let campo
+
+// Objeto global para el formulario que se muestra por default 
+let form1
+
+menuForm1()
+
+checkLastScreen()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

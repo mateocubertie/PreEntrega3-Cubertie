@@ -31,7 +31,6 @@ html {
     color: var(--main-text-color);
     border-radius: 0.4rem;
     margin: 0 10px 0 10px;
-    /*text-shadow: 3px 3px 3px rgba(103,103,103,0.6);*/
     box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
     -webkit-box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
     -moz-box-shadow: 10px 10px 15px 0px rgba(10, 10, 10, 0.53);
