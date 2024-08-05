@@ -203,14 +203,13 @@ nav img {
 .genericForm {
     display: flex;
     flex-direction: column;
-}
-
-.genericForm {
-    display: flex;
-    flex-direction: column;
     justify-content: flex-start;
 }
 #formPresupuesto {
+    flex-direction: row;
+    justify-content: space-between;
+}
+.displayedForm {
     flex-direction: row;
     justify-content: space-between;
 }
@@ -227,6 +226,7 @@ nav img {
     padding-left: 30px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     transition: 0.5s;
     transition-timing-function: ease-out;
 }
@@ -319,19 +319,19 @@ select {
     margin: 15px 0 15px 0;
     padding-right: 15px;
 }
-.displayTotal {
+.displayResultado {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     width: 100%;
     margin: 30px 0 15px 0;
 }
-.displayTotal h3 {
+.displayResultado h3 {
     font-size: 28px;
     font-weight: 600;
     text-decoration: underline;
 }
-.displayTotal .precio {
+.displayResultado .destacado {
     color: var(--primary-brand-color);
     text-decoration: none;
 }
@@ -360,7 +360,7 @@ select {
     margin-top: 30px;
     display: grid;
     align-self: center;
-    gap: 10px;
+    gap: 6px;
 }
 .celdaHectarea {
     width: 30px;

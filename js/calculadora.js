@@ -69,12 +69,12 @@ function generarPresupuesto(hectareas, pulv, largoPulv) {
         display.appendChild(alertaDescuento)
     }
     let divTotal = document.createElement('div')
-    divTotal.classList.add('displayTotal')
+    divTotal.classList.add('displayResultado')
     divTotal.innerHTML = `<h3>Total:</h3>`
 
 
     let tituloPrecio = document.createElement('h3')
-    tituloPrecio.classList.add('precio')
+    tituloPrecio.classList.add('destacado')
     tituloPrecio.textContent = `USD $${precioTotal}`
     divTotal.appendChild(tituloPrecio)
 

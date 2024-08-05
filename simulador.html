@@ -109,7 +109,7 @@
     <template id="inputCultivoFiltro">
         <div class="formInput">
             <h3>Cultivo</h3>
-            <select name="" id="" class="nombreCultivo">
+            <select name="" id="nombreCultivo">
                 <option value="undefined">No filtrar por cultivo</option>
                 <option value="papa">Papa 🥔</option>
                 <option value="zanahoria">Zanahoria 🥕</option>
@@ -156,17 +156,6 @@
                 <option value="4">Cultivos maduros (60-80%)</option>
                 <option value="5">A punto de cosechar (80-99%)</option>
                 <option value="6">Listos para cosechar (100%)</option>
-            </select>
-        </div>
-    </template>
-    <template id="inputParametroPromedio">
-        <div class="formInput">
-            <h3>Parámetro a promediar</h3>
-            <select name="parametrosPromedio" id="parametroPromedio">
-                <option value="default"></option>
-                <option value="temperatura">Temperatura</option>
-                <option value="humedad">Humedad</option>
-                <option value="crecimiento">Nivel de crecimiento</option>
             </select>
         </div>
     </template>
@@ -230,9 +219,52 @@
     <template id="menuFiltrar">
         <form class="genericForm" id="formFiltro">
             <div class="dataInputs">
-                
+                <input value="Generar campo filtrado" type="submit"
+                    class="button solidFill submitButton disabledButton">
             </div>
-            <input value="Generar campo filtrado" type="submit" class="button solidFill submitButton disabledButton">
+        </form>
+    </template>
+    <template id="menuSimulacion">
+        <form class="genericForm" id="formSimulador">
+            <div class="dataInputs">
+                <div class="formInput">
+                    <h3>Determine el tiempo del dia</h3>
+                    <select name="rangosTemperatura" id="tempInicial">
+                        <option value="default">Seleccione una opcion</option>
+                        <option value="1">Dia soleado</option>
+                        <option value="2">Dia nublado</option>
+                        <option value="3">Dia de lluvia</option>
+                    </select>
+                </div>
+                <input value="Simular paso del dia" class="button solidFill submitButton disabledButton" type="submit">
+                <button class="button solidFill backButton">Volver</button>
+            </div>
+        </form>
+    </template>
+    <template id="menuPromedio">
+        <form class="genericForm displayedForm" id="formPromedio">
+            <div class="dataInputs">
+                <div class="formInput">
+                    <h3>Seleccione el parametro a promediar</h3>
+                    <select name="tiposFiltro" id="parametroPromedio">
+                        <option value="default">Seleccione una opcion</option>
+                        <option value="progreso">Nivel de crecimiento</option>
+                        <option value="temperatura">Temperatura de suelo</option>
+                        <option value="humedad">Humedad de suelo</option>
+                    </select>
+                    <h3>¿Desea filtrar las celdas a promediar?</h3>
+                    <select name="filtrosPromedio" id="filtrarPromedio">
+                        <option value="default">Seleccione una opcion...</option>
+                        <option value="si">Si</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <input value="Generar promedio" class="button solidFill submitButton disabledButton" type="submit">
+                <button class="button solidFill backButton">Volver</button>
+            </div>
+            <div class="dataDisplay displayResultado center centerText">
+
+            </div>
         </form>
     </template>
     <template id="templateBackButton">

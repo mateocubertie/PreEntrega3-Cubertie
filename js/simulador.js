@@ -1,7 +1,44 @@
 let headerHeight = parseInt(document.querySelector('header').offsetHeight)
 document.getElementById('simulador').style.marginTop = `${headerHeight + 30}px`
 
-let campo
+class Campo {
+    constructor(array, ancho, filas) {
+        this.array = array
+        this.ancho = ancho
+        this.filas = filas
+    }
+}
+function filtrarCampo(campo, celdaFiltro) {
+    let campoFiltrado = []
+    campo.array.forEach((fila) => {
+        // Obtiene las coincidencias en cada fila
+        let coincidenciasFila = fila.filter((celda) => compararCelda(celda, celdaFiltro))
+        // Las concatena al array del campo filtrado
+        campoFiltrado = campoFiltrado.concat(coincidenciasFila);
+    })
+    return campoFiltrado;
+}
+//! Objetos y metodos
+class HectareaCultivo {
+    // Constructor
+    constructor(id, cultivo, humedad, temperatura, progreso) {
+        this.id = id;
+        this.cultivo = cultivo;
+        this.humedad = humedad;
+        this.temperatura = temperatura;
+        this.progreso = progreso;
+        this.color = coloresCultivos(cultivo)
+    }
+}
+
+// Chequea que las propiedades numericas de la celda se encuentren dentro de los limites
+function chequearLimitesCelda(celda) {
+    celda.humedad = fitToLimits(celda.humedad, 5, 100);
+    celda.temperatura = fitToLimits(celda.temperatura, -5, 35);
+    celda.progreso = fitToLimits(celda.progreso, 0, 100);
+}
+
+let campo = new Campo()
 let simulador = document.querySelector('#simulador')
 
 let inputAncho = document.querySelector('#simAnchoCampo')
@@ -22,6 +59,27 @@ form1.btnSubmit.addEventListener("click", (e) => {
     }
 })
 
+let actualizarCeldaLluvia = (celda) => {
+    celda.humedad += randomNumber(3, 10);
+    celda.temperatura -= randomNumber(0.5, 2);
+    celda.progreso += randomNumber(1.5, 2.2);
+    chequearLimitesCelda(celda);
+
+}
+let actualizarCeldaSol = (celda) => {
+    celda.humedad -= randomNumber(0.5, 1);
+    celda.temperatura += randomNumber(0.2, 1);
+    celda.progreso += randomNumber(0.5, 1.2);
+    chequearLimitesCelda(celda);
+
+}
+let actualizarCeldaNublado = (celda) => {
+    celda.humedad -= randomNumber(0.2, 0.8);
+    celda.temperatura -= randomNumber(0.2, 0.5);
+    celda.progreso += randomNumber(0.2, 1);
+    chequearLimitesCelda(celda);
+}
+
 let buttonCargarProgreso = document.querySelector('.buttonCargarProgreso')
 buttonCargarProgreso.onclick = () => {
     saveCheck()
@@ -38,7 +96,6 @@ checkLastScreen()
 
 function saveCheck() {
     let localSave = JSON.parse(localStorage.getItem("campoSave"))
-    console.log(localSave)
     if (localSave) {
         campo = localSave
         limpiarPantalla()
@@ -152,6 +209,7 @@ function form2(cantidadCultivos) {
     form2.btnSubmit.addEventListener("click", () => {
         if (!form2.submitDisable) {
             inicializarCampo(form2)
+            campo = new Campo(arrayCampo, anchoCampo, arrayCampo.length)
             limpiarPantalla()
             menuSimulador()
         }
@@ -171,13 +229,12 @@ function inicializarCampo(form2) {
             for (let nColumna = 0; nColumna < anchoCampo; nColumna++) {
                 // Genera un id de la forma '(fila;columna)'
                 let id = `${nFila};${nColumna}`;
-                let celda = new hectareaCultivo(id, cultivo, setHumedadInicial(humedadInicial), setTemperaturaInicial(tempInicial), setProgresoInicial(progresoInicial));
+                let celda = new HectareaCultivo(id, cultivo, setHumedadInicial(humedadInicial), setTemperaturaInicial(tempInicial), setProgresoInicial(progresoInicial));
                 fila.push(celda);
             }
             arrayCampo.push(fila);
         }
     }
-    campo = new Campo(arrayCampo, anchoCampo, arrayCampo.length)
 }
 
 function menuSimulador() {
@@ -190,19 +247,22 @@ function menuSimulador() {
         boton.addEventListener('click', (event) => {
             let buttonClasses = event.target.classList
             let buttonAction = buttonClasses[buttonClasses.length - 1]
-            console.log(buttonAction)
             switch (buttonAction) {
                 case 'buttonMenuConsultar':
                     limpiarPantalla()
                     menuConsultar()
                     break
                 case 'buttonMenuSimular':
+                    limpiarPantalla()
+                    menuSimularDia()
                     break
                 case 'buttonMenuFiltrar':
                     limpiarPantalla()
                     menuFiltrar()
                     break
                 case 'buttonMenuPromedio':
+                    limpiarPantalla()
+                    menuPromedio()
                     break
                 case 'buttonMenuGuardar':
                     localStorage.setItem("campoSave", JSON.stringify(campo))
@@ -276,10 +336,10 @@ function menuFiltrar() {
     let formTemperatura = document.querySelector("#inputTemperaturaFiltro").content.cloneNode(true).querySelector('.formInput')
     let formHumedad = document.querySelector("#inputHumedadFiltro").content.cloneNode(true).querySelector('.formInput')
     let formProgreso = document.querySelector("#inputProgresoFiltro").content.cloneNode(true).querySelector('.formInput')
-    let formsFiltros = [formCultivo, formTemperatura, formHumedad, formProgreso]
+    let formsFiltros = [formTemperatura, formHumedad, formProgreso, formCultivo]
     let inputs = []
     for (filtro of formsFiltros) {
-        dataInputs.appendChild(filtro)
+        dataInputs.prepend(filtro)
         inputs.push(filtro.querySelector('select'))
     }
     let form = new Form(formNode, inputs)
@@ -302,7 +362,7 @@ function menuFiltrar() {
             for (let fila = 0; fila < campo.filas; fila++) {
                 let arrayFila = []
                 for (let columna = 0; columna < campo.ancho; columna++) {
-                    let celda = new hectareaCultivo(undefined, undefined, undefined, undefined, undefined)
+                    let celda = new HectareaCultivo(undefined, undefined, undefined, undefined, undefined)
                     if (compararCelda(campo.array[fila][columna], celdaFiltro)) {
                         celda.color = 'green'
                     }
@@ -326,6 +386,144 @@ function menuFiltrar() {
     })
 }
 
+function menuSimularDia() {
+    let formNode = document.querySelector('#menuSimulacion').content.cloneNode(true).querySelector('form')
+    let selectorClima = formNode.querySelector('select')
+    let inputs = [selectorClima]
+    let form = new Form(formNode, inputs)
+    let backButton = formNode.querySelector('.backButton')
+    backButton.addEventListener('click', () => {
+        limpiarPantalla()
+        menuSimulador()
+    })
+    form.btnSubmit.addEventListener('click', () => {
+        if (!form.submitDisable) {
+            let opcion = selectorClima.value
+            switch (opcion) {
+                case '1':
+                    recorrerCampo(campo, actualizarCeldaSol);
+                    break;
+                case '2':
+                    recorrerCampo(campo, actualizarCeldaNublado);
+                    break;
+                case '3':
+                    recorrerCampo(campo, actualizarCeldaLluvia);
+                    break;
+            }
+        }
+    })
+    simulador.appendChild(formNode)
+}
+
+function getNodeFromTemplate(templateSelector) {
+    return document.querySelector(`${templateSelector}`).content.cloneNode(true).children.item(0)
+}
+
+function menuPromedio() {
+    let formNode = getNodeFromTemplate('#menuPromedio')
+    let dataInputs = formNode.querySelector('.dataInputs')
+    let selectInputs = formNode.getElementsByTagName('select')
+    let inputs = []
+    for (let input of selectInputs) {
+        inputs.push(input)
+    }
+    let form = new Form(formNode, inputs)
+    simulador.appendChild(formNode)
+    form.btnSubmit.addEventListener
+    let backButton = formNode.querySelector('.backButton')
+    backButton.addEventListener('click', (e) => {
+        e.preventDefault()
+        limpiarPantalla()
+        menuSimulador()
+    })
+    let filtroOpcional = formNode.querySelector('#filtrarPromedio')
+    let flagFiltro = false
+    filtroOpcional.addEventListener('input', (e) => {
+        let opcion = e.target.value
+        switch (opcion) {
+            case 'si':
+                let filtros = [getNodeFromTemplate('#inputCultivoFiltro'), getNodeFromTemplate('#inputHumedadFiltro'), getNodeFromTemplate('#inputTemperaturaFiltro'), getNodeFromTemplate('#inputProgresoFiltro')]
+                for (let input of filtros) {
+                    form.inputs.push(input)
+                    dataInputs.insertBefore(input, dataInputs.querySelector('.submitButton'))
+                }
+                form.inicializarInputs()
+                flagFiltro = true
+                break
+            case 'no':
+                if (flagFiltro) {
+                    let i = 0
+                    let inputs = form.node.getElementsByClassName('formInput')
+                    console.log(inputs)
+                    while (i < 4) {
+                        inputs[inputs.length - 1].remove()
+                        i++
+                    }
+                    flagFiltro = false
+                }
+                break
+        }
+    })
+    form.btnSubmit.addEventListener('click', () => {
+        if (!form.submitDisable) {
+            let campoPromediado = campo
+            let display = form.node.querySelector('.dataDisplay')
+            if (flagFiltro) {
+                let cultivoFiltro = formatearString(form.node.querySelector('#nombreCultivo').value)
+                let temperaturaFiltro = getFiltroTemperatura(form.node.querySelector('#temperaturaFiltro').value)
+                let humedadFiltro = getFiltroHumedad(form.node.querySelector('#humedadFiltro').value)
+                let progresoFiltro = getFiltroProgreso(form.node.querySelector('#progresoFiltro').value)
+                let celdaFiltro = {
+                    cultivo: cultivoFiltro,
+                    temperatura: temperaturaFiltro,
+                    humedad: humedadFiltro,
+                    progreso: progresoFiltro
+                }
+                campoPromediado = filtrarCampo(campo, celdaFiltro)
+            }
+            else {
+                let filasFusionadas = []
+                for (let fila of campo.array) {
+                    filasFusionadas = filasFusionadas.concat(fila)
+                }
+                campoPromediado = filasFusionadas
+            }
+            if (campoPromediado.length == 0) {
+                display.innerHTML = `<h3>No hay celdas coincidentes con el filtro</h3>`
+                return
+            }
+            let propiedad = form.node.querySelector('#parametroPromedio').value
+            let unidad
+            switch (propiedad) {
+                case 'temperatura':
+                    unidad = '°C'
+                    break
+                case 'progreso':
+                case 'humedad':
+                    unidad = '%'
+                    break
+            }
+            let promedio = generarPromedio(campoPromediado, propiedad)
+            display.innerHTML = `<h3>Promedio obtenido: <span class="destacado">${promedio}${unidad}<span></h3>`
+        }
+    })
+}
+
+function generarPromedio(campoFiltrado, propiedad) {
+    let sumaTotal = campoFiltrado.reduce((accumulator, celda) => accumulator + celda[`${propiedad}`], 0)
+    let digitosDecimales = 2
+    const redondeoDecimal = Math.pow(10, digitosDecimales)
+    let promedio = Math.round((sumaTotal / campoFiltrado.length) * redondeoDecimal) / redondeoDecimal
+    return promedio
+}
+
+
+function recorrerCampo(campo, funcion) {
+    campo.array.forEach((fila) => {
+        fila.forEach((celda) => funcion(celda))
+    })
+}
+
 function drawGridCampo(campo) {
     let gridCampo = document.createElement('div')
     gridCampo.classList.add('displayCampo')
@@ -342,54 +540,6 @@ function drawGridCampo(campo) {
     simulador.appendChild(gridCampo)
 }
 
-
-// function menuFiltrar(campo) {
-//     let filtro = {
-//         cultivo: undefined,
-//         humedad: undefined,
-//         temperatura: undefined,
-//         progreso: undefined
-//     }
-//     let submenuEnable = true;
-//     let primerFiltro = true;
-//     while (submenuEnable) {
-//         let menuOption;
-//         if (primerFiltro) {
-//             menuOption = parseInt(prompt(strMenuPrimerFiltro));
-//         }
-//         else {
-//             menuOption = parseInt(prompt(strMenuFiltrosAdicionales));
-//         }
-//         switch (menuOption) {
-//             case 1:
-//                 filtro.cultivo = formatearString(prompt("Ingrese el nombre del cultivo: "));
-//                 primerFiltro = false;
-//                 break;
-//             case 2:
-//                 filtro.humedad = menuFiltrarHumedad();
-//                 primerFiltro = false;
-//                 break;
-//             case 3:
-//                 filtro.temperatura = menuFiltrarTemperatura();
-//                 primerFiltro = false;
-//                 break;
-//             case 4:
-//                 filtro.progreso = menuFiltrarProgreso();
-//                 primerFiltro = false;
-//                 break;
-//             case 5:
-//                 if (!primerFiltro) {
-//                     submenuEnable = false;
-//                     break;
-//                 }
-//             default:
-//                 alert(invalidOption);
-//                 break;
-//         }
-//     }
-//     return filtrarCampo(campo, filtro);
-// }
-
 function getFiltroHumedad(opcion) {
     switch (opcion) {
         case '1':
@@ -403,9 +553,6 @@ function getFiltroHumedad(opcion) {
     }
     return opcion
 }
-
-
-
 
 function getFiltroTemperatura(opcion) {
     switch (opcion) {
@@ -442,10 +589,8 @@ function getFiltroProgreso(opcion) {
 function compararCelda(celda, celdaFiltro) {
     for (let propiedad in celdaFiltro) {
         let valorFiltro = celdaFiltro[`${propiedad}`];
-        console.log(valorFiltro)
         if (valorFiltro !== 'undefined' && valorFiltro !== 'Undefined') {
             let valorPropiedad = celda[`${propiedad}`];
-            console.log(valorPropiedad)
             if (propiedad == 'cultivo') {
                 if (valorPropiedad !== valorFiltro) {
                     return false;
@@ -473,81 +618,6 @@ function consultarCelda(campo, fila, columna) {
         return null
     }
 }
-class Campo {
-    constructor(array, ancho, filas) {
-        this.array = array
-        this.ancho = ancho
-        this.filas = filas
-    }
-    recorrerCampo(funcion) {
-        this.array.forEach((fila) => {
-            fila.forEach((celda) => funcion(celda))
-        })
-    }
-    filtrarCampo(celdaFiltro) {
-        let campoFiltrado = [];
-        this.array.forEach((fila) => {
-            // Obtiene las coincidencias en cada fila
-            let coincidenciasFila = fila.filter((celda) => compararCelda(celda, celdaFiltro))
-            // Las concatena al array del campo filtrado
-            campoFiltrado = campoFiltrado.concat(coincidenciasFila);
-        });
-        return campoFiltrado;
-    }
-}
-//! Objetos y metodos
-class hectareaCultivo {
-    // Constructor
-    constructor(id, cultivo, humedad, temperatura, progreso) {
-        this.id = id;
-        this.cultivo = cultivo;
-        this.humedad = humedad;
-        this.temperatura = temperatura;
-        this.progreso = progreso;
-        this.color = coloresCultivos(cultivo)
-    }
-
-    // Chequea que las propiedades numericas de la celda se encuentren dentro de los limites
-    chequearLimitesCelda() {
-        this.humedad = fitToLimits(this.humedad, 5, 100);
-        this.temperatura = fitToLimits(this.temperatura, -5, 35);
-        this.progreso = fitToLimits(this.progreso, 0, 100);
-    }
-
-}
-
-let actualizarCeldaLluvia = (celda) => {
-    celda.humedad += randomNumber(3, 10);
-    celda.temperatura -= randomNumber(0.5, 2);
-    celda.progreso += randomNumber(1.5, 2.2);
-    celda.chequearLimitesCelda();
-
-}
-let actualizarCeldaSol = (celda) => {
-    celda.humedad -= randomNumber(0.5, 1);
-    celda.temperatura += randomNumber(0.2, 1);
-    celda.progreso += randomNumber(0.5, 1.2);
-    celda.chequearLimitesCelda();
-
-}
-let actualizarCeldaNublado = (celda) => {
-    celda.humedad -= randomNumber(0.2, 0.8);
-    celda.temperatura -= randomNumber(0.2, 0.5);
-    celda.progreso += randomNumber(0.2, 1);
-    celda.chequearLimitesCelda();
-}
-
-
-// //! Funciones para operaciones generales
-
-// // Muestra un objeto y sus propiedades mediante alert()
-// function mostrarObjeto(objeto) {
-//     let print = [];
-//     for (let propiedad in objeto) {
-//         print.push(`${formatearString(propiedad)}: ${objeto[propiedad]}\n`);
-//     }
-//     alert(print.join(''));
-// }
 
 // Pone una mayuscula al principio del string
 function meterMayuscula(string) {
@@ -575,187 +645,3 @@ function fitToLimits(num, min, max) {
     }
     return num;
 }
-
-
-
-
-
-
-
-// // Compara una celda con una definida como filtro
-// // (Las propiedades que no se quieren filtrar se declaran como undefined)
-
-
-// // Filtra todo el array campo en base a las propiedades de una celda "filtro"
-
-
-// // Muestra con alert() un mapa de las celdas filtradas (X -> coincidencia, 0 -> excluida por el filtro)
-// function mapearCampo(campo, campoFiltrado) {
-//     let anchoCampo = campo[0].length;
-//     let stringAlert = [];
-//     campo.forEach((fila) => {
-//         let found;
-//         for (let celda of fila) {
-//             if (campoFiltrado.includes(celda)) {
-//                 found = 'X'
-//             }
-//             else {
-//                 found = '0'
-//             }
-//             stringAlert = stringAlert.concat(found)
-//         }
-//         stringAlert = stringAlert.concat("\n");
-//     })
-//     stringAlert = stringAlert.concat("\nSe ha generado una vista detallada de las celdas coincidentes en la consola.")
-//     console.log(campoFiltrado);
-//     alert(stringAlert.join(""));
-// }
-
-// // Genera un porcentaje de progreso segun el nivel de crecimiento ingresado
-
-
-// //! Menus
-
-// function promptProgreso() {
-//     while (true) {
-//         let menuOption = parseInt(prompt(strPromptProgreso));
-//         switch (menuOption) {
-//             case 1:
-//             case 2:
-//             case 3:
-//             case 4:
-//             case 5:
-//                 return menuOption;
-//             default:
-//                 alert(invalidOption);
-//                 break;
-//         }
-//     }
-// }
-
-// // Funciones flecha que definen como actualizar cada celda segun el clima del dia
-
-
-// const strMenuSimulacion = `Ingrese un numero de opción:
-// 1. Simular dia soleado
-// 2. Simular dia nublado
-// 3. Simular dia de lluvia
-// 4. Salir
-// `
-// function menuSimulacion(campo) {
-//     let submenuEnable = true;
-//     while (submenuEnable) {
-//         let menuOption = parseInt(prompt(strMenuSimulacion));
-//         switch(menuOption) {
-//             case 1:
-//                 campo = recorrerCampo(campo, actualizarCeldaSol);
-//                 break;
-//             case 2:
-//                 campo = recorrerCampo(campo, actualizarCeldaNublado);
-//                 break;
-//             case 3:
-//                 campo = recorrerCampo(campo, actualizarCeldaLluvia);
-//                 break;
-//             case 4:
-//                 submenuEnable = false;
-//                 break;
-//             default:
-//                 alert(invalidOption);
-//                 break;
-//         }
-//     }
-//     return campo;
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// function menuPromedio(campo) {
-//     let submenuEnable = true;
-//     let propiedad;
-//     while (submenuEnable) {
-//         let menuOption = parseInt(prompt(strMenuPromedio));
-//         switch(menuOption) {
-//             case 1:
-//                 propiedad = 'temperatura';
-//                 submenuEnable = false;
-//                 break;
-//             case 2:
-//                 propiedad = 'humedad';
-//                 submenuEnable = false;
-//                 break;
-//             case 3:
-//                 propiedad = 'progreso';
-//                 submenuEnable = false;
-//                 break;
-//             default:
-//                 alert(invalidOption);
-//                 break;
-//         }
-//     }
-//     submenuEnable = true;
-//     let filtrarCampo = false;
-//     while (submenuEnable) {
-//         let menuOption = parseInt(prompt(strMenuPromedioFiltro));
-//         switch(menuOption) {
-//             case 1:
-//                 filtrarCampo = true;
-//                 // Filtra el campo como el usuario decida (devuelve un array unidimensional)
-//                 campo = menuFiltrar(campo);
-//                 submenuEnable = false;
-//                 break;
-//             case 2:
-//                 let filasFusionadas = [];
-//                 // Fusiona las filas en un solo array unidimensional
-//                 for (let fila of campo) {
-//                     filasFusionadas = filasFusionadas.concat(fila);
-//                 }
-//                 campo = filasFusionadas;
-//                 submenuEnable = false;
-//                 break;
-//             default:
-//                 alert(invalidOption);
-//                 break;
-//         }
-//     }
-//     if ((filtrarCampo == true) && campo.length == 0) {
-//         alert("No hay celdas coincidentes con el filtro");
-//     }
-//     else {
-//         let sumaTotal = campo.reduce(
-//             (acumulador, celda) => acumulador + celda[`${propiedad}`],
-//             0
-//         );
-//         let promedio = sumaTotal / campo.length;
-//         alert(`El promedio de ${propiedad} es ${promedio}`);
-//     }
-// }
-
-// let menuEnable = true;
-
-// while (menuEnable) {
-//     let menuOption = parseInt(prompt(strMenuPrincipal))
-//     switch (menuOption) {
-//         case 1:
-//             simuladorCampo();
-//             break;
-//         case 2:
-//             alert("¡Hasta luego!");
-//             menuEnable = false;
-//             break;
-//         default:
-//             alert(invalidOption);
-//             break;
-//     }
-// }

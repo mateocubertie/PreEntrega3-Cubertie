@@ -8,31 +8,7 @@ class Form {
         this.btnSubmit.addEventListener("click", (e)=> {
             e.preventDefault()
         })
-        for (let input of this.inputs) {
-            if (input.value != 'undefined') {
-                input.invalidInput = true
-            }
-            else {
-                input.invalidInput = false
-            }
-            input.addEventListener('input', () => {
-                if (input.tagName == 'INPUT'){
-                    switch(input.getAttribute('type')) {
-                    case 'number':
-                        input.invalidInput = formNumberCheck(input)
-                        break
-                    case 'text':
-                        input.invalidInput = input.value == ""
-                        break;
-                }
-                }
-                else if (input.tagName == 'SELECT') {
-                    input.invalidInput = (input.value == 'default')
-                }
-                this.formCheckSubmit()
-            })
-        }
-        this.formCheckSubmit()
+        this.inicializarInputs()
     }
     formCheckSubmit() {
         this.submitDisable = false
@@ -47,6 +23,36 @@ class Form {
         else {
             this.btnSubmit.classList.remove('disabledButton')
         }
+    }
+    inicializarInputs() {
+        for (let input of this.inputs) {
+            if (input.value == "" || input.value == 'default') {
+                input.invalidInput = true
+            }
+            else {
+                input.invalidInput = false
+            }
+            input.addEventListener('input', () => {
+                if (input.tagName == 'INPUT'){
+                    switch(input.getAttribute('type')) {
+                    case 'number':
+                        input.invalidInput = formNumberCheck(input)
+                        break
+                    case 'text':
+                        input.invalidInput = input.value == ""
+                        break;
+                    default:
+                        input.invalidInput = false
+                        break
+                    }
+                }
+                else if (input.tagName == 'SELECT') {
+                    input.invalidInput = (input.value == 'default')
+                }
+                this.formCheckSubmit()
+            })
+        }
+        this.formCheckSubmit()
     }
 }
 
