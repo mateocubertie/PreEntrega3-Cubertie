@@ -251,8 +251,6 @@ function getNodeFromTemplate(templateSelector) {
 function saveCheck() {
     let localSave = JSON.parse(localStorage.getItem("campoSave"))
     if (localSave) {
-        console.log(campo)
-        console.log('estadoprevio')
         campo = localSave
         limpiarPantalla()
         menuSimulador()
@@ -266,11 +264,10 @@ function checkLastScreen() {
             menuForm1()
             break
         case 'simulador':
-            console.log(campo)
             campo = JSON.parse(localStorage.getItem("campoSave"))
             // Reconvierte el campo guardado en localStorage en un objeto de prototipo Campo
+            // (el parse devuelve un objeto sin prototipo, y por lo tanto sin metodos asociados)
             Object.setPrototypeOf(campo, new Campo())
-            console.log(campo)
             limpiarPantalla()
             menuSimulador()
             break
@@ -306,7 +303,6 @@ function menuForm1() {
     let formInputs = [inputAncho, inputCantCultivos, inputTemperatura]
 
     form1 = new Form(document.querySelector('#formSimulador1'), formInputs)
-    console.log(form1)
     form1.btnSubmit.addEventListener("click", (e) => {
         e.preventDefault()
         if (!form1.submitDisable) {
@@ -571,7 +567,6 @@ function menuPromedio() {
                 if (flagFiltro) {
                     let i = 0
                     let inputs = form.node.getElementsByClassName('formInput')
-                    console.log(inputs)
                     while (i < 4) {
                         inputs[inputs.length - 1].remove()
                         i++
@@ -634,7 +629,6 @@ class Campo {
         this.filas = filas
     }
     recorrerCampo(funcion) {
-        console.log('funciono')
         this.array.forEach((fila) => {
             fila.forEach((celda) => funcion(celda))
         })
@@ -675,35 +669,3 @@ let form1
 menuForm1()
 
 checkLastScreen()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

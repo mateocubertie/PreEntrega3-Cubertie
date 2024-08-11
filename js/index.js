@@ -21,6 +21,3 @@ form.btnSubmit.addEventListener("click", () => {
         generarPresupuesto(hectareas, pulv, largoPulv)
     }
 })
-
-
-

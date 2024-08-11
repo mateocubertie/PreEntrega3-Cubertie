@@ -82,4 +82,3 @@ function formNumberCheck(inputElement) {
     }
     return false
 }
-
